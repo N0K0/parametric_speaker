@@ -1,8 +1,7 @@
 [target.thumbv7em-none-eabihf]
 runner = 'probe-rs run --chip STM32F401CCUx'
 rustflags = [
-  # Disabled flip-link for testing
-  # "-C", "linker=flip-link",
+  "-C", "linker=flip-link",
   "-C", "link-arg=-Tlink.x",
   "-C", "link-arg=-Tdefmt.x",
 ]
