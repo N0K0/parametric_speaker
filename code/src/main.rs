@@ -76,11 +76,11 @@ fn main() -> ! {
 
     let rcc = p.RCC.constrain();
 
+    // STM32F401 clock configuration (max 84MHz sysclk)
     let clocks = rcc
         .cfgr
         .use_hse(25u32.MHz())
-        .sysclk(96.MHz())
-        .i2s_clk(61440.kHz())
+        .sysclk(84.MHz())
         .require_pll48clk()
         .freeze();
 
@@ -205,12 +205,6 @@ fn TIM1_CC() {
 
     pwm_manager.clear_flags(Flag::C1);
 
-    // cortex_m::interrupt::free(|cs| {
-    //     let mut led = LED.borrow(cs).take().unwrap();
-    //     led.set_high();
-    //     LED.borrow(cs).replace(Some(led));
-    // });
-
     const AMPLIFY: i32 = 0000;
 
     let min = i16::MIN as i32 + AMPLIFY;
@@ -237,16 +231,8 @@ fn TIM1_CC() {
 
     let duty = ((*max_duty as i32 * (value as i32 - min)) / (max - min)) as u16;
 
-    // info!("Duty: {}", duty);
-
     pwm_channels[0].set_duty(duty as u16);
     pwm_channels[1].set_duty(duty as u16);
-
-    // cortex_m::interrupt::free(|cs| {
-    //     let mut led = LED.borrow(cs).take().unwrap();
-    //     led.set_low();
-    //     LED.borrow(cs).replace(Some(led));
-    // });
 }
 
 #[interrupt]
@@ -271,13 +257,11 @@ fn OTG_FS() {
         let mut buf: [u8; 1024] = [0u8; 1024];
         if let Ok(len) = usb_audio.read(&mut buf) {
             let data = &buf[0..len];
-            // info!("{}", len);
             for x in data.chunks_exact(2) {
                 let val = i16::from_le_bytes(
                     x.try_into()
                         .expect("Should not panic because chunks are always 2 bytes"),
                 );
-                // info!("Val: {}", val);
                 if queue.enqueue(val).is_err() {
                     error!("Overrun");
                 }
