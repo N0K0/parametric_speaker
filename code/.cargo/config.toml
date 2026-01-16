@@ -11,3 +11,6 @@ target = "thumbv7em-none-eabihf"
 
 [env]
 DEFMT_LOG = "info"
+
+[alias]
+bin = "objcopy --release -- -O binary target/thumbv7em-none-eabihf/release/parametric_speaker.bin"
